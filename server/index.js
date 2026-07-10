@@ -1,18 +1,33 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { pool } = require('./db/connection');
-const { initDB } = require('./db/init');
-const { verifyToken } = require('./middleware/auth');
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { pool } from './db/connection.js';
+import { initDB } from './db/init.js';
+import { verifyToken } from './middleware/auth.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+// Middleware
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'production' ? '*' : 'http://localhost:5173'),
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
+
+// Serve static files from the Vite build
+const clientPath = path.join(__dirname, '../dist');
+app.use(express.static(clientPath));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', db: 'connected' }));
@@ -37,7 +52,7 @@ app.post('/api/auth/register', async (req, res) => {
     await pool.query('INSERT INTO income (user_id, amount) VALUES ($1, $2) ON CONFLICT DO NOTHING', [user.id, 0]);
 
     const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.cookie('token', token, { httpOnly: true, secure: false, sameSite: 'lax' });
+    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
     res.json({ user: { id: user.id, name: user.name, email: user.email, provider: user.provider, avatar: user.avatar } });
   } catch (e) {
     console.error('Register error:', e);
@@ -57,7 +72,7 @@ app.post('/api/auth/login', async (req, res) => {
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.cookie('token', token, { httpOnly: true, secure: false, sameSite: 'lax' });
+    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
     res.json({ user: { id: user.id, name: user.name, email: user.email, provider: user.provider, avatar: user.avatar } });
   } catch (e) {
     console.error('Login error:', e);
@@ -85,7 +100,7 @@ app.post('/api/auth/social', async (req, res) => {
     }
 
     const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.cookie('token', token, { httpOnly: true, secure: false, sameSite: 'lax' });
+    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
     res.json({ user: { id: user.id, name: user.name, email: user.email, provider: user.provider, avatar: user.avatar } });
   } catch (e) {
     console.error('Social auth error:', e);
@@ -181,10 +196,18 @@ app.put('/api/income', verifyToken, async (req, res) => {
   }
 });
 
+// Serve the React app for all other routes (SPA routing)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientPath, 'index.html'));
+});
+
 async function start() {
   await initDB();
   const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
 
-start();
+start().catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
+});

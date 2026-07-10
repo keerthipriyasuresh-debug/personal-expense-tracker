@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
-function verifyToken(req, res, next) {
+export function verifyToken(req, res, next) {
   const token = req.cookies?.token || req.headers['authorization']?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Not authenticated' });
   try {
@@ -11,5 +11,3 @@ function verifyToken(req, res, next) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 }
-
-module.exports = { verifyToken };

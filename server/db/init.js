@@ -1,6 +1,6 @@
-const { pool } = require('./connection');
+import { pool } from './connection.js';
 
-async function initDB() {
+export async function initDB() {
   const client = await pool.connect();
   try {
     await client.query(`
@@ -44,5 +44,3 @@ async function initDB() {
     client.release();
   }
 }
-
-module.exports = { initDB };
