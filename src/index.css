@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+
+  --color-paper: #F7F9FB;
+  --color-ink: #0B1220;
+  --color-ink-muted: #50607A;
+  --color-ink-faint: #8898AD;
+  --color-surface: #FFFFFF;
+  --color-surface-glass: rgba(255, 255, 255, 0.72);
+  --color-glass-stroke: rgba(11, 18, 32, 0.06);
+  --color-glass-backdrop: rgba(247, 249, 251, 0.55);
+  --color-ocean: #1B6B93;
+  --color-ocean-deep: #124B6B;
+  --color-ocean-glow: #EAF3F8;
+  --color-foliage: #2A9D6A;
+  --color-foliage-glow: #E8F6F0;
+  --color-amber: #C88A2C;
+  --color-rose-soft: #D45D6A;
+  --color-rose-glow: #FBEDEE;
+}
+
+.dark {
+  --color-paper: #09101A;
+  --color-ink: #F0F3F8;
+  --color-ink-muted: #94A3BB;
+  --color-ink-faint: #5B6E88;
+  --color-surface: #0F172A;
+  --color-surface-glass: rgba(15, 23, 42, 0.75);
+  --color-glass-stroke: rgba(255, 255, 255, 0.05);
+  --color-glass-backdrop: rgba(9, 16, 26, 0.55);
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  ::selection {
+    background: var(--color-ocean-glow);
+    color: var(--color-ink);
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background: var(--color-surface-glass);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    border: 1px solid var(--color-glass-stroke);
+    box-shadow:
+      0 1px 3px rgba(11, 18, 32, 0.04),
+      0 12px 40px rgba(11, 18, 32, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+  .glass-card:hover {
+    box-shadow:
+      0 1px 3px rgba(11, 18, 32, 0.04),
+      0 20px 56px rgba(11, 18, 32, 0.10),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+  .dark .glass-card {
+    background: rgba(18, 26, 42, 0.65);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+  .text-balance { text-wrap: balance; }
+}
