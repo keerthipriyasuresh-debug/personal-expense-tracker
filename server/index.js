@@ -197,8 +197,20 @@ app.put('/api/income', verifyToken, async (req, res) => {
 });
 
 // Serve the React app for all other routes (SPA routing)
-app.get('*', (req, res) => {
+// Serve React app for all other routes (SPA routing)
+app.use((req, res) => {
   res.sendFile(path.join(clientPath, 'index.html'));
+});
+
+async function start() {
+  await initDB();
+  const PORT = process.env.PORT || 3001;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+start().catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
 });
 
 async function start() {
